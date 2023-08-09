@@ -1,0 +1,23 @@
+{
+  "name": "node-metrics",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "minuchi <kimkimee2@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpileOnly src/index.ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.9",
+    "prettier": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "prom-client": "^14.2.0"
+  }
+}
