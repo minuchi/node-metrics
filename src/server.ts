@@ -1,58 +1,28 @@
-import http from 'http';
 import { Registry } from 'prom-client';
-
-export const getIPFromRequest = (req: http.IncomingMessage) => {
-  return (
-    req.headers['x-forwarded-for'] ||
-    req.socket.remoteAddress ||
-    ''
-  ).toString();
-};
-
-export const logHttpRequest = (
-  req: http.IncomingMessage,
-  res: http.ServerResponse,
-) => {
-  const message = {
-    date: new Date().toISOString(),
-    level: 'info',
-    type: 'http',
-    method: req.method,
-    userAgent: req.headers['user-agent'],
-    url: req.url,
-    statusCode: res.statusCode,
-    ip: getIPFromRequest(req),
-  };
-
-  console.log(JSON.stringify(message));
-};
+import express from 'express';
+import morgan from 'morgan';
+import 'express-async-errors';
 
 export const createServer = (register: Registry) => {
-  return http.createServer(async (req, res) => {
-    if (req.url === '/health') {
-      return res.end('OK');
-    }
+  const app = express();
 
-    if (req.url === '/metrics') {
-      return res
-        .setHeader('Content-Type', register.contentType)
-        .end(await register.metrics());
-    }
-
-    return res.writeHead(404).end('Not Found');
+  app.use(morgan('combined'));
+  app.get('/health', (_, res) => {
+    res.send('OK');
   });
+
+  app.get('/metrics', async (_, res) => {
+    res.set('Content-Type', register.contentType);
+    res.send(await register.metrics());
+  });
+
+  return app;
 };
 
-export const runServer = (server: http.Server, port: number) => {
-  server.on('request', logHttpRequest);
-  server.listen(port, () => {
+export const runServer = (app: express.Express, port: number) => {
+  app.listen(port, () => {
     console.log(
-      JSON.stringify({
-        date: new Date().toISOString(),
-        level: 'info',
-        type: 'server',
-        message: `Server listening to ${port}, metrics exposed on /metrics endpoint`,
-      }),
+      `Server listening to ${port}, metrics exposed on /metrics endpoint`,
     );
   });
 };
